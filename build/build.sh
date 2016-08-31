@@ -11,14 +11,14 @@ emmake make
 emmake make install
 cd ..
 
-cd expat-2.2.0
-emmake make clean
-emconfigure ./configure CFLAGS="-O3" --prefix=$(pwd)/../dist
-sed -i 's|#include <stdio.h>|#include <stdio.h>\
-#include <unistd.h>|g' xmlwf/readfilemap.c
-emmake make
-emmake make install
-cd ..
+#cd expat-2.2.0
+#emmake make clean
+#emconfigure ./configure CFLAGS="-O3" --prefix=$(pwd)/../dist
+#sed -i 's|#include <stdio.h>|#include <stdio.h>\
+##include <unistd.h>|g' xmlwf/readfilemap.c
+#emmake make
+#emmake make install
+#cd ..
 
 cd freetype-2.6.5
 
@@ -64,10 +64,10 @@ emmake make install
 cd ..
 
 #cd fontconfig-2.12.1
-#export FREETYPE_CFLAGS="-I$(pwd)/../dist/include/freetype2"
-#export FREETYPE_LIBS=" "
-#export EXPAT_CFLAGS="-I$(pwd)/../dist/include"
-#export EXPAT_LIBS=" "
+#FREETYPE_CFLAGS="-I$(pwd)/../dist/include/freetype2" \
+#FREETYPE_LIBS=" " \
+#EXPAT_CFLAGS="-I$(pwd)/../dist/include" \
+#EXPAT_LIBS=" " \
 #emconfigure ./configure CFLAGS="-O3" --prefix=$(pwd)/../dist --with-expat-includes=$(pwd)/../dist/include --with-expat-lib=$(pwd)/../dist/lib --with-default-fonts=/fonts --with-cache-dir=/cache --with-baseconfigdir=/ --host=x86-none-linux --build=x86_64 
 #sed -i 's|#define HAVE_LINK 1|// #define HAVE_LINK 1|' config.h
 #patch -p1 < ../fontconfig.patch
@@ -75,16 +75,32 @@ cd ..
 #emmake make install
 #cd ..
 
+cd harfbuzz-1.3.0
+emmake make clean
+
+FREETYPE_LIBS=" " \
+FREETYPE_CFLAGS="-I$(pwd)/../dist/include/freetype2" \
+emconfigure ./configure CFLAGS="-O3" --prefix=$(pwd)/../dist --with-freetype=yes
+
+emmake make
+emmake make install
+cd ..
+
 cd libass-master
-export FREETYPE_CFLAGS="-I$(pwd)/../dist/include/freetype2"
-export FREETYPE_LIBS=" "
-export FRIBIDI_CFLAGS="-I$(pwd)/../dist/include/fribidi"
-export FRIBIDI_LIBS=" "
-#export FONTCONFIG_CFLAGS="-I$(pwd)/../dist/include"
-#export FONTCONFIG_LIBS=" "
+
 ./autogen.sh
 emmake make clean
+
+#FONTCONFIG_CFLAGS="-I$(pwd)/../dist/include"
+#FONTCONFIG_LIBS=" "
+FREETYPE_CFLAGS="-I$(pwd)/../dist/include/freetype2" \
+FREETYPE_LIBS=" " \
+FRIBIDI_CFLAGS="-I$(pwd)/../dist/include/fribidi" \
+FRIBIDI_LIBS=" " \
+HARFBUZZ_CFLAGS="-I$(pwd)/../dist/include/harfbuzz" \
+HARFBUZZ_LIBS=" " \
 emconfigure ./configure CFLAGS="-O3" --prefix=$(pwd)/../dist --disable-require-system-font-provider
+
 emmake make
 emmake make install
 cd ..

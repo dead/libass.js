@@ -6,7 +6,7 @@ emcc -O3 \
 -s TOTAL_MEMORY=134217728 \
 build/dist/lib/libass.a \
 build/dist/lib/libfreetype.a \
-build/dist/lib/libexpat.a \
 build/dist/lib/libfribidi.a \
+build/dist/lib/libharfbuzz.a \
 --post-js build/api.js \
 -o libass.js
