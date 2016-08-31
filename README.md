@@ -25,10 +25,10 @@ To run the `build.sh` and `libass.sh` you will need install emscripten and the f
 `apt-get install wget libtool automake autoconf pkg-config patch bzip unzip`
 
 ## TODO
-* Remove jquery dependecy
+* Remove jquery dependency
 * Remove video.js dependency
 * Remove libjass clock dependency
-* Remove long.js dependecy
+* Remove long.js dependency
 * Create a proper libass wrapper
 * Cache next frames to improve performance?
 * Use javascript SIMD to blend the bitmaps?
