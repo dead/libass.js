@@ -8,11 +8,11 @@ Take a look at the examples and draw your own conclusions.
 
 ## Examples
 This examples are a modification of the [videojs-ass](https://github.com/SunnyLi/videojs-ass) example to run using the libass.js
-### [videojs.libass.js](http://dead.github.io/libass.js/examples-videojs/test.html)
+### [videojs.libass.js](http://dead.github.io/libass.js/example-videojs/test.html)
 This example use multiple canvas to render the subtitles. The resizing is not working correctly.
 Because it need to allocate a buffer and a canvas for every subtitle sometimes the browser can throw an allocation error.
 
-### [videojs.libass-onecanvas.js](http://dead.github.io/libass.js/examples-videojs/test-onecanvas.html)
+### [videojs.libass-onecanvas.js](http://dead.github.io/libass.js/example-videojs/test-onecanvas.html)
 This example use only one canvas to render the subtitles. So it will probably use less memory than the previous example.
 (In theory it can use more cpu because it need to clean the regions in the canvas that were rendered by previous frames)
 
