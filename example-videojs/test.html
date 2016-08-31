@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Videojs ASS/SSA subtitles</title>
+
+    <!-- bower-->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/5.5.3/video-js.min.css" rel="stylesheet">
+    <link href="https://cdn.rawgit.com/Arnavion/libjass/36f6600d6cc78daf29fe747f2cc0cb0a4f83ad41/demo/libjass.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/5.5.3/video.min.js"></script>
+    <script src="https://cdn.rawgit.com/Arnavion/libjass/36f6600d6cc78daf29fe747f2cc0cb0a4f83ad41/demo/libjass.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+
+    <!-- src -->
+    <script src="long.min.js"></script>
+    <script src="libass.js"></script>
+    <link href="videojs.ass.css" rel="stylesheet">
+    <script src="videojs.libass.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-youtube/2.0.7/Youtube.min.js"></script>
+  </head>
+
+  <style>
+    .header {
+      display: flex;
+      align-items: center;
+    }
+    
+    .back {
+      flex: 0;
+      margin: 0 1rem;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    
+    .player-wrapper {
+      width: 65%;
+    }
+    
+    @media screen and (max-device-width: 1200px) {
+      .player-wrapper {
+        width: 80%;
+      }
+    }
+    
+    @media screen and (min-device-width: 1600px) {
+      .player-wrapper {
+        width: 50%;
+      }
+    }
+  </style>
+  
+  <body>
+    <div class="header">
+      <a class="back" href="https://github.com/dead/libass.js/">< Back</a>
+      <h2>Video.js x libass.js</h2>
+    </div>
+    <p><h1 id="fontsloading">Loading fonts, please wait.</h1></p>
+    <div class="player-wrapper">
+      <video id="player" class="video-js vjs-default-skin vjs-big-play-centered"></video>
+    </div>
+    <script>
+      videojs('player', {
+        controls: true,
+        nativeControlsForTouch: false,
+        width: 640,
+        height: 360,
+        fluid: false,
+        plugins: {
+          ass: {
+            'src': ['sdl.ass'],
+            'fonts': [
+              //['fonts/arialbd.ttf', 'Arial Bold'],
+              //['fonts/ariali.ttf', 'Arial Italic'],
+              //['fonts/arial.ttf', 'Arial'],
+              //['fonts/times.ttf', 'Times New Roman'],
+            ], //Still will load the default LiberationSans-Bold.ttf
+            'fonts_id': 'fontsloading',
+          }
+        },
+        techOrder: ['youtube'],
+        sources: [{'type': 'video/youtube', 'src': 'https://www.youtube.com/watch?v=HswIHVN5D4o'}]
+      });
+    </script>
+
+    <br><br>
+  </body>
+</html>

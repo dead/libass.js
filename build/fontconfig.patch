@@ -1,0 +1,32 @@
+diff -Naur fontconfig-2.12.1-old/src/fcstat.c fontconfig-2.12.1/src/fcstat.c
+--- fontconfig-2.12.1-old/src/fcstat.c	2016-07-11 02:41:06.000000000 +0000
++++ fontconfig-2.12.1/src/fcstat.c	2016-08-30 18:40:19.010302600 +0000
+@@ -379,6 +379,8 @@
+ 	}
+ 
+ 	return ret;
++#  elif EMSCRIPTEN
++    return ret;
+ #  else
+ #    error "BUG: No way to figure out with fstatfs()"
+ #  endif
+@@ -399,6 +401,9 @@
+ FcBool
+ FcIsFsMmapSafe (int fd)
+ {
++#ifdef EMSCRIPTEN
++    return FcFalse;
++#endif
+     FcStatFS statb;
+ 
+     if (FcFStatFs (fd, &statb) < 0)
+@@ -410,6 +415,9 @@
+ FcBool
+ FcIsFsMtimeBroken (const FcChar8 *dir)
+ {
++#ifdef EMSCRIPTEN
++    return FcFalse;
++#endif
+     int fd = FcOpen ((const char *) dir, O_RDONLY);
+ 
+     if (fd != -1)

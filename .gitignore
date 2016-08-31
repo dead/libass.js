@@ -1,0 +1,6 @@
+build/cache
+build/dist
+build/expat*
+build/freetype-*
+build/fribidi*
+build/libass-*

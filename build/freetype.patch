@@ -1,0 +1,124 @@
+diff -Naur freetype-2.6.5-old/src/autofit/afdummy.c freetype-2.6.5/src/autofit/afdummy.c
+--- freetype-2.6.5-old/src/autofit/afdummy.c	2016-02-03 16:13:58.000000000 -0200
++++ freetype-2.6.5/src/autofit/afdummy.c	2016-08-25 11:11:09.374914000 -0300
+@@ -40,11 +40,13 @@
+   static FT_Error
+   af_dummy_hints_apply( FT_UInt        glyph_index,
+                         AF_GlyphHints  hints,
+-                        FT_Outline*    outline )
++                        FT_Outline*    outline,
++                        AF_StyleMetrics  metrics )
+   {
+     FT_Error  error;
+ 
+     FT_UNUSED( glyph_index );
++    FT_UNUSED( metrics );
+ 
+ 
+     error = af_glyph_hints_reload( hints, outline );
+diff -Naur freetype-2.6.5-old/src/autofit/aftypes.h freetype-2.6.5/src/autofit/aftypes.h
+--- freetype-2.6.5-old/src/autofit/aftypes.h	2016-04-09 01:33:25.000000000 -0300
++++ freetype-2.6.5/src/autofit/aftypes.h	2016-08-25 11:11:31.238526000 -0300
+@@ -221,7 +221,7 @@
+   (*AF_WritingSystem_InitHintsFunc)( AF_GlyphHints    hints,
+                                      AF_StyleMetrics  metrics );
+ 
+-  typedef void
++  typedef FT_Error
+   (*AF_WritingSystem_ApplyHintsFunc)( FT_UInt          glyph_index,
+                                       AF_GlyphHints    hints,
+                                       FT_Outline*      outline,
+diff -Naur freetype-2.6.5-old/src/cid/cidload.c freetype-2.6.5/src/cid/cidload.c
+--- freetype-2.6.5-old/src/cid/cidload.c	2016-02-03 16:13:58.000000000 -0200
++++ freetype-2.6.5/src/cid/cidload.c	2016-08-25 11:15:00.310892000 -0300
+@@ -146,7 +146,7 @@
+   }
+ 
+ 
+-  FT_CALLBACK_DEF( FT_Error )
++  FT_CALLBACK_DEF( void )
+   cid_parse_font_matrix( CID_Face     face,
+                          CID_Parser*  parser )
+   {
+@@ -171,14 +171,18 @@
+       result = cid_parser_to_fixed_array( parser, 6, temp, 3 );
+ 
+       if ( result < 6 )
+-        return FT_THROW( Invalid_File_Format );
++      {
++        FT_THROW( Invalid_File_Format );
++        return;
++      }
+ 
+       temp_scale = FT_ABS( temp[3] );
+ 
+       if ( temp_scale == 0 )
+       {
+         FT_ERROR(( "cid_parse_font_matrix: invalid font matrix\n" ));
+-        return FT_THROW( Invalid_File_Format );
++        FT_THROW( Invalid_File_Format );
++        return;
+       }
+ 
+       /* atypical case */
+@@ -204,12 +208,10 @@
+       offset->x  = temp[4] >> 16;
+       offset->y  = temp[5] >> 16;
+     }
+-
+-    return FT_Err_Ok;
+   }
+ 
+ 
+-  FT_CALLBACK_DEF( FT_Error )
++  FT_CALLBACK_DEF( void )
+   parse_fd_array( CID_Face     face,
+                   CID_Parser*  parser )
+   {
+@@ -224,8 +226,8 @@
+     if ( num_dicts < 0 )
+     {
+       FT_ERROR(( "parse_fd_array: invalid number of dictionaries\n" ));
+-      error = FT_THROW( Invalid_File_Format );
+-      goto Exit;
++      FT_THROW( Invalid_File_Format );
++      return;
+     }
+ 
+     /*
+@@ -259,7 +261,7 @@
+ 
+ 
+       if ( FT_NEW_ARRAY( cid->font_dicts, num_dicts ) )
+-        goto Exit;
++        return;
+ 
+       cid->num_dicts = num_dicts;
+ 
+@@ -274,8 +276,7 @@
+       }
+     }
+ 
+-  Exit:
+-    return error;
++    FT_UNUSED(error);
+   }
+ 
+ 
+@@ -283,7 +284,7 @@
+   /* and CID_FaceDictRec (both are public header files and can't  */
+   /* changed); we simply copy the value                           */
+ 
+-  FT_CALLBACK_DEF( FT_Error )
++  FT_CALLBACK_DEF( void )
+   parse_expansion_factor( CID_Face     face,
+                           CID_Parser*  parser )
+   {
+@@ -298,7 +299,6 @@
+       dict->private_dict.expansion_factor = dict->expansion_factor;
+     }
+ 
+-    return FT_Err_Ok;
+   }
+ 
+ 
