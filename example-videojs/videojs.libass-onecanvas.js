@@ -264,6 +264,7 @@
         });
 		
 		player.on('seeking', function () {
+			lastTime = 0;
 			clock.seeking();
         });
 		
@@ -278,6 +279,7 @@
 		player.on('dispose', function () {
 			clock.disable();
 			dst = null;
+			lastTime = 0;
         });
         
         player.ready(function () {
