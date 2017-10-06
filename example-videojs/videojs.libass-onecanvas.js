@@ -116,20 +116,37 @@
             var r = (color >> 24) & 0xFF,
                 g = (color >> 16) & 0xFF,
                 b = (color >> 8) & 0xFF,
-                a = 255 - (color & 0xFF);
+                a = (color & 0xFF);
             
             var src_pos = 0;
             var dst_pos = (dst_y * dst_w * 4) + (dst_x * 4);
             
+			// from https://github.com/videolan/vlc/blob/master/modules/codec/libass.c#L685
             for (var y = 0; y < h; ++y) {
                 for (var x = 0; x < w; ++x) {
-                    var k = Module.HEAPU8[bitmap_ptr + src_pos + x] * a / 255;
-                    dst[dst_pos]     = (k * r + (255 - k) * dst[dst_pos]) / 255;
-                    dst[dst_pos + 1] = (k * g + (255 - k) * dst[dst_pos + 1]) / 255;
-                    dst[dst_pos + 2] = (k * b + (255 - k) * dst[dst_pos + 2]) / 255;
-                    dst[dst_pos + 3] = a;
+					var alpha = Module.HEAPU8[bitmap_ptr + src_pos + x];
+                    var an = (255 - a) * alpha / 255;
+					var ao = dst[dst_pos + 3];
+					
+					if (ao == 0) {
+						dst[dst_pos] = r;
+						dst[dst_pos + 1] = g;
+						dst[dst_pos + 2] = b;
+						dst[dst_pos + 3] = an;
+					}
+					else {
+						dst[dst_pos + 3] = 255 - (255 - dst[dst_pos + 3]) * (255 - an) / 255;
+						
+						if (dst[dst_pos + 3] != 0) {
+							dst[dst_pos]     = (dst[dst_pos] * ao * (255 - an) / 255 + r * an) / dst[dst_pos + 3];
+							dst[dst_pos + 1] = (dst[dst_pos + 1] * ao * (255 - an) / 255 + g * an) / dst[dst_pos + 3];
+							dst[dst_pos + 2] = (dst[dst_pos + 2] * ao * (255 - an) / 255 + b * an) / dst[dst_pos + 3];
+						}
+					}
+					
                     dst_pos += 4;
                 }
+				
                 dst_pos += ((dst_w - x) * 4);
                 src_pos += stride;
             }
