@@ -127,7 +127,7 @@
                     dst[dst_pos]     = (k * r + (255 - k) * dst[dst_pos]) / 255;
                     dst[dst_pos + 1] = (k * g + (255 - k) * dst[dst_pos + 1]) / 255;
                     dst[dst_pos + 2] = (k * b + (255 - k) * dst[dst_pos + 2]) / 255;
-                    dst[dst_pos + 3] = (k * 255 + (255 - k) * dst[dst_pos + 3]) / 255;
+                    dst[dst_pos + 3] = a;
                     dst_pos += 4;
                 }
                 dst_pos += ((dst_w - x) * 4);
