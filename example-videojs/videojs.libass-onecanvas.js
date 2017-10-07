@@ -18,7 +18,6 @@
 		
 		lib = ass_library_init();
         render = ass_renderer_init(lib);
-		//ass_set_cache_limits(render, 1, 10);
 		
 		overlay.className = 'libassjs';
         OverlayComponent = {
@@ -80,8 +79,7 @@
 					
 					loadFromUrl(scriptUrl).then(function (responseArray) {
 						console.log('Script ' + scriptUrl + ' loaded');
-						var decoder = new TextDecoder('utf8');
-						track = ass_read_memory(lib, decoder.decode(responseArray), responseArray.length, null);
+						track = ass_read_memory(lib, responseArray, responseArray.length, null);
 						resolve();
 					});
 				});
@@ -98,7 +96,8 @@
                 canvas.style.transform = 'scale(' + scaleToFit + ')';
                 canvas.style.top = ((getVideoHeight() - (canvas.height * scaleToFit)) / 2) + 'px';
 				canvas.style.left = ((getVideoWidth() - (canvas.width * scaleToFit)) / 2) + 'px';
-			});
+				canvas.style.imageRendering = 'crisp-edges';
+			}, 100);
 		}
 		
 		function blend(dst, img, dst_w, dst_h) {
@@ -204,8 +203,7 @@
             var height = canvas.height;
             
             lastTime = currentTime;
-            var currentTimeLong = dcodeIO.Long.fromInt(parseInt(currentTime * 1000));
-            var returnRenderFrame = ass_render_frame(render, track, currentTimeLong.low, currentTimeLong.high, changed);
+            var returnRenderFrame = ass_render_frame(render, track, parseInt(currentTime * 1000), 0, changed);
             
             if (Module.HEAPU8[changed] != 0) {
                 while(clear.length > 0) {
@@ -245,10 +243,8 @@
         }
 		
 		loadFontsAndScript(options.fonts, options.src).then(function () {
-			if (options.fonts_id) {
-				for (var id in options.fonts_id) {
-					$('#'+options.fonts_id[id]).toggle();
-				}
+			if (options.onFontsAndScriptLoaded) {
+				options.onFontsAndScriptLoaded();
 			}
 		});
 		
