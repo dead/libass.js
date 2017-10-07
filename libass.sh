@@ -3,7 +3,8 @@ emcc -O3 \
 -s EXPORTED_FUNCTIONS=@build/libass.sym \
 -s INVOKE_RUN=0 \
 -s NO_EXIT_RUNTIME=1 \
--s TOTAL_MEMORY=134217728 \
+-s TOTAL_MEMORY=402653184 \
+-s ABORTING_MALLOC=0 \
 build/dist/lib/libass.a \
 build/dist/lib/libfreetype.a \
 build/dist/lib/libfribidi.a \
