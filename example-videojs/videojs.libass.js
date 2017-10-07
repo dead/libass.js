@@ -1,77 +1,25 @@
 (function (videojs, libjass) {
-    'use strict';
-    
-    var vjs_ass = function (options) {
-        var overlay = document.createElement('div'),
-            player  = this,
-            clock   = null,
-            lib     = null,
-            render  = null,
-            track   = null,
-            clockRate = options.rate || 1,
-            delay   = options.delay || 0,
-            OverlayComponent = null,
-            ready   = false;
-        
-        if (!options.src) {
+	'use strict';
+	
+	var libassjs = function (options) {
+		var player = this,
+			overlay = document.createElement('div'),
+			OverlayComponent = null,
+			canvas = document.createElement('canvas'),
+			ctx = canvas.getContext('2d'),
+			lib = null,
+			render = null,
+			track = null,
+			clock = null;
+		
+		if (!options.src) {
             return;
         }
-        
-        lib = ass_library_init();
-        render = ass_renderer_init(lib);
-        
-        function getVideoWidth() {
-            return options.videoWidth || player.videoWidth() || player.el().offsetWidth;
-        }
-        
-        function getVideoHeight() {
-            return options.videoHeight || player.videoHeight() || player.el().offsetHeight
-        }
-        
-        ass_set_frame_size(render, getVideoWidth(), getVideoHeight());
-        console.log(getVideoWidth() + "x" + getVideoHeight());
-        
-        function loadFont(url, fontName) {
-            var fn = url.substring(url.lastIndexOf('/')+1);
-            console.log(fn);
-            
-            return new Promise(function (resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', url, true);
-                xhr.responseType = 'arraybuffer';
-
-                xhr.onload = function(e) {
-                    var responseArray = new Uint8Array(this.response);
-                    console.log('Font ' + fn + ' loaded');
-                    ass_add_font(lib, fontName, responseArray, responseArray.length);
-                    resolve();
-                };
-
-                xhr.send();
-            });
-        }
-        
-        var fonts = [loadFont('LiberationSans-Bold.ttf', 'Liberation Sans Bold')];
-        
-        if (options.fonts) {
-            for (var i in options.fonts) {
-                fonts.push(loadFont(options.fonts[i][0], options.fonts[i][1]));
-            }
-        }
-            
-        Promise.all(fonts).then(function () {
-            ass_set_fonts(render, '', 'Liberation Sans Bold', 0, null, 0);
-            if (options.fonts_id) {
-                $('#'+options.fonts_id).hide();
-            }
-        });
-        
-        $.get( options.src, function(data) {
-                track = ass_read_memory(lib, data, data.length+1, null);
-        });
-        
-        overlay.className = 'vjs-ass';
-        
+		
+		lib = ass_library_init();
+		render = ass_renderer_init(lib);
+		
+		overlay.className = 'libassjs';
         OverlayComponent = {
             name: function () {
                 return 'AssOverlay'
@@ -80,15 +28,76 @@
                 return overlay;
             }
         };
-
-        function getCurrentTime() {
-            return player.currentTime() - delay;
+		
+		player.addChild(OverlayComponent);
+		
+		function getCurrentTime() {
+            return player.currentTime();
         }
-        
-        clock = new libjass.renderers.AutoClock(getCurrentTime, 500);
-        var changed = Module._malloc(4);
+		
+		function getVideoWidth() {
+            return parseInt(getComputedStyle(player.el()).width, 10);
+        }
+		
+		function getVideoHeight() {
+            return parseInt(getComputedStyle(player.el()).height, 10);
+        }
+		
+		function loadFromUrl(url, responseType='arraybuffer') {
+			return new Promise(function (resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.responseType = responseType;
 
-        function blend(ctx, img) {
+                xhr.onload = function(e) {
+                    var responseArray = new Uint8Array(this.response);
+                    resolve(responseArray);
+                };
+				
+                xhr.send();
+            });
+		}
+		
+		function loadFont(url, fontName) {
+            var fn = url.substring(url.lastIndexOf('/')+1);
+			
+			return loadFromUrl(url).then(function (responseArray) {
+				console.log('Font ' + fn + ' loaded');
+                ass_add_font(lib, fontName, responseArray, responseArray.length);
+			});
+        }
+		
+		function loadFontsAndScript(fontsUrl, scriptUrl) {
+			return new Promise(function (resolve, reject) {
+				var fonts = [loadFont('LiberationSans-Bold.ttf', 'Liberation Sans Bold')];
+				for (var i in fontsUrl) {
+					fonts.push(loadFont(fontsUrl[i][0], fontsUrl[i][1]));
+				}
+				
+				Promise.all(fonts).then(function () {
+					ass_set_fonts(render, '', 'Liberation Sans Bold', 0, null, 0);
+					
+					loadFromUrl(scriptUrl).then(function (responseArray) {
+						console.log('Script ' + scriptUrl + ' loaded');
+						track = ass_read_memory(lib, responseArray, responseArray.length, null);
+						resolve();
+					});
+				});
+			});
+		}
+		
+		function updateDisplayArea() {
+			setTimeout(function () {
+				console.log(getVideoWidth() + 'x' + getVideoHeight());
+				ass_set_frame_size(render, getVideoWidth(), getVideoHeight());
+				
+				while (overlay.childNodes.length > 0) {
+                    overlay.removeChild(overlay.firstChild);
+                }
+			}, 100);
+		}
+		
+		function blend(ctx, img) {
             var w = img.w,
                 h = img.h,
                 color = img.color,
@@ -121,10 +130,15 @@
             
             ctx.putImageData(new ImageData(dst, w, h), 0, 0);
         }
-        
+		
         var lastTime = 0;
-
-        function onClockTick() {
+		var changed = Module._malloc(4);
+		
+		function onClockTick() {
+			if (!track) {
+				return;
+			}
+			
             var currentTime = clock.currentTime;
             
             if (lastTime > currentTime) {
@@ -132,30 +146,26 @@
             }
             
             lastTime = currentTime;
+            var returnRenderFrame = ass_render_frame(render, track, parseInt(currentTime * 1000), 0, changed);
             
-            var currentTimeLong = dcodeIO.Long.fromInt(parseInt(clock.currentTime*1000));
-            
-            var returnRenderFrame = ass_render_frame(render, track, currentTimeLong.low, currentTimeLong.high, changed);
-
-            if (changed != 0) {
-                var draws = 0;
-                
-                if (returnRenderFrame != 0) {
+            if (Module.HEAPU8[changed] != 0) {
+				var draws = 0;
+				
+                if(returnRenderFrame != 0) {
                     var img = new ASS_Image(returnRenderFrame);
                     
                     while (img.valid) {
-                        var canvas = overlay.childNodes[draws];
-                        
                         if (!img.w || !img.h) {
                             img = new ASS_Image(img.next);
                             continue;
                         }
-                        
+						
+						var canvas = overlay.childNodes[draws];
                         if (!canvas) {
                             canvas = document.createElement('canvas');
                             overlay.appendChild(canvas);
                         }
-                        
+						
                         canvas.width = img.w;
                         canvas.height = img.h;
                         canvas.style.position = 'absolute';
@@ -164,10 +174,9 @@
                         
                         var ctx = canvas.getContext('2d');
                         blend(ctx, img);
-                        
-                        draws += 1;
-                        
+						
                         img = new ASS_Image(img.next);
+						draws += 1;
                     }
                 }
                 
@@ -176,57 +185,48 @@
                     overlay.removeChild(c);
                 }
             }
-        };
-        
-        clock.addEventListener(libjass.renderers.ClockEvent.Tick, onClockTick);
-        
-        player.addChild(OverlayComponent);
-        
-        player.on('play', function () {
-            clock.play();
-        });
-        
-        player.on('pause', function () {
-            clock.pause();
-        });
-        
-        player.on('seeking', function () {
-            clock.seeking();
-            lastTime = 0;
-        });
-        
-        function updateClockRate() {
-            clock.setRate(player.playbackRate() * clockRate);
         }
-
-        updateClockRate();
-        player.on('ratechange', updateClockRate);
-        
-        function updateDisplayArea() {
-            setTimeout(function () {
-                console.log(getVideoWidth(), getVideoHeight())
-                ass_set_frame_size(render, getVideoWidth(), getVideoHeight());
-                
-                while (overlay.childNodes.length > 0) {
-                    overlay.removeChild(overlay.firstChild);
-                }
-            }, 100);
-        }
-        
-        window.addEventListener('resize', updateDisplayArea);
-        
-        player.on('loadedmetadata', updateDisplayArea);
+		
+		loadFontsAndScript(options.fonts, options.src).then(function () {
+			if (options.onFontsAndScriptLoaded) {
+				options.onFontsAndScriptLoaded();
+			}
+		});
+		
+		clock = new libjass.renderers.AutoClock(getCurrentTime, 500);
+		clock.addEventListener(libjass.renderers.ClockEvent.Tick, onClockTick);
+		
+		player.on('play', function () {
+			clock.play();
+		});
+		
+		player.on('pause', function () {
+			clock.pause();
+        });
+		
+		player.on('seeking', function () {
+			lastTime = 0;
+			clock.seeking();
+        });
+		
+		player.on('ratechange', function () {
+			clock.setRate(player.playbackRate());
+		});
+		
+		player.on('loadedmetadata', updateDisplayArea);
         player.on('resize', updateDisplayArea);
         player.on('fullscreenchange', updateDisplayArea);
-        
-        player.on('dispose', function () {
-            clock.disable();
+		
+		player.on('dispose', function () {
+			clock.disable();
+			lastTime = 0;
         });
         
         player.ready(function () {
-            
+            ass_set_frame_size(render, getVideoWidth(), getVideoHeight());
+			console.log(getVideoWidth() + 'x' + getVideoHeight());
         });
-    }
-    
-    videojs.plugin('ass', vjs_ass);
+	}
+	
+	videojs.plugin('ass', libassjs);
 }(window.videojs, window.libjass));
