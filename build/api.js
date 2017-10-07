@@ -347,7 +347,7 @@ ass_read_file = Module.cwrap('ass_read_file', 'number', ['number', 'string', 'st
  * ASS_Track *ass_read_memory(ASS_Library *library, char *buf,
  *                            size_t bufsize, char *codepage);
 */
-ass_read_memory = Module.cwrap('ass_read_memory', 'number', ['number', 'string', 'number', 'string']);
+ass_read_memory = Module.cwrap('ass_read_memory', 'number', ['number', 'array', 'number', 'string']);
 
 /**
  * \brief Read styles from file into already initialized track.
@@ -565,9 +565,10 @@ Object.defineProperty(ASS_Image.prototype, 'stride', {
 });
 
 Object.defineProperty(ASS_Image.prototype, 'bitmap', {
-    get: function() { return Module.getValue(this.ptr + 12, '*') },
-    set: function(newvalue) { Module.setValue(this.ptr + 12, '*') }
+    get: function() { return Module.getValue(this.ptr + 12, '*'); },
+    set: function(newvalue) { Module.setValue(this.ptr + 12, '*'); }
 });
+
 Object.defineProperty(ASS_Image.prototype, 'color', {
     get: function() { return Module.getValue(this.ptr + 16, 'i32'); },
     set: function(newvalue) { Module.setValue(this.ptr + 16, newvalue, 'i32'); }
@@ -584,6 +585,6 @@ Object.defineProperty(ASS_Image.prototype, 'dst_y', {
 });
 
 Object.defineProperty(ASS_Image.prototype, 'next', {
-    get: function() { return Module.getValue(this.ptr + 28, '*') },
-    set: function(newvalue) { Module.setValue(this.ptr + 28, '*') }
+    get: function() { return Module.getValue(this.ptr + 28, '*'); },
+    set: function(newvalue) { Module.setValue(this.ptr + 28, '*'); }
 });

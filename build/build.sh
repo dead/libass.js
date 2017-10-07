@@ -4,8 +4,9 @@ rm -r dist
 mkdir dist
 
 cd fribidi-0.19.7
+autoreconf -f -i
 emmake make clean
-emconfigure ./configure CFLAGS="-O3" --prefix=$(pwd)/../dist
+emconfigure ./configure CFLAGS="-O3" --prefix=$(pwd)/../dist --host=x86-none-linux --build=x86_64
 sed -i 's/ | \\$global_symbol_pipe //' libtool
 emmake make
 emmake make install
@@ -80,7 +81,9 @@ emmake make clean
 
 FREETYPE_LIBS=" " \
 FREETYPE_CFLAGS="-I$(pwd)/../dist/include/freetype2" \
-emconfigure ./configure CFLAGS="-O3" --prefix=$(pwd)/../dist --with-freetype=yes
+CFLAGS="-O3" \
+CXXFLAGS="-O3" \
+emconfigure ./configure --prefix=$(pwd)/../dist --with-freetype=yes --host=x86-none-linux --build=x86_64
 
 emmake make
 emmake make install
@@ -99,7 +102,7 @@ FRIBIDI_CFLAGS="-I$(pwd)/../dist/include/fribidi" \
 FRIBIDI_LIBS=" " \
 HARFBUZZ_CFLAGS="-I$(pwd)/../dist/include/harfbuzz" \
 HARFBUZZ_LIBS=" " \
-emconfigure ./configure CFLAGS="-O3" --prefix=$(pwd)/../dist --disable-require-system-font-provider
+emconfigure ./configure CFLAGS="-O3" --prefix=$(pwd)/../dist --host=x86-none-linux --build=x86_64 --disable-require-system-font-provider
 
 emmake make
 emmake make install
