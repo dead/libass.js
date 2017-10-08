@@ -10,7 +10,11 @@
 			lib = null,
 			render = null,
 			track = null,
-			clock = null;
+			clock = null,
+			AssButton = null,
+			AssButtonInstance = null,
+			OverlayComponent = null,
+			VjsButton = null;
 		
 		if (!options.src) {
             return;
@@ -222,11 +226,42 @@
 			lastTime = 0;
         });
         
-        player.ready(function () {
+		    // Visibility Toggle Button
+    if (!options.hasOwnProperty('button') || options.button) {
+      VjsButton = videojs.getComponent('Button');
+      AssButton = videojs.extend(VjsButton, {
+        constructor: function (player, options) {
+          options.name = options.name || 'assToggleButton';
+          VjsButton.call(this, player, options);
+		  this.controlText('Subtitle ASS');
+        },
+        buildCSSClass: function () {
+          var classes = VjsButton.prototype.buildCSSClass.call(this);
+          return 'vjs-subtitles-button ' + classes;
+        },
+        handleClick: function () {
+          if (!this.hasClass('inactive')) {
+            this.addClass('inactive');
+            overlay.style.visibility = "hidden";
+          } else {
+            this.removeClass('inactive');
+            overlay.style.visibility = "visible";
+          }
+        }
+      });
+
+      player.ready(function () {
             ass_set_frame_size(render, getVideoWidth(), getVideoHeight());
 			console.log(getVideoWidth() + 'x' + getVideoHeight());
-        });
-	}
+        AssButtonInstance = new AssButton(player, options);
+        player.controlBar.addChild(AssButtonInstance);
+        player.controlBar.el().insertBefore(
+          AssButtonInstance.el(),
+          player.controlBar.getChild('customControlSpacer').el().nextSibling
+        );
+      });
+    }
+  }
 	
 	videojs.plugin('ass', libassjs);
 }(window.videojs, window.libjass));
