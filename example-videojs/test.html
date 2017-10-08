@@ -15,6 +15,25 @@
     <script src="videojs.libass.js"></script>
 	
     <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-youtube/2.0.7/Youtube.min.js"></script>
+    <style type="text/css">
+	  .libassjs {
+		position: absolute;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+		}
+		.vjs-default-skin .vjs-subtitles-button {
+		cursor: pointer;
+		}
+		.vjs-default-skin .vjs-subtitles-button:before {
+		font-family: VideoJS;
+		content: '\f10c';
+		}
+		.vjs-default-skin .vjs-subtitles-button.inactive {
+		color: grey;
+		}
+    </style>
   </head>
 
   <body>
